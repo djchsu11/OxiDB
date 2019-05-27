@@ -1,3 +1,7 @@
+[[bin]]
+name="database"
+path="database/src/main.rs"
+
 [package]
 name = "database"
 version = "0.1.0"
@@ -5,3 +9,6 @@ authors = ["messenger <or.no.world@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+
+
+

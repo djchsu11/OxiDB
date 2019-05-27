@@ -1,3 +1,10 @@
+use std::io;
+
 fn main() {
-    println!("Hello, world!");
+    let mut input = String::new();
+
+    println!("Type something >:");
+    io::stdin().read_line(&mut input).unwrap();
+
+    println!("You typed: {}", input.trim());
 }
