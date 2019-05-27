@@ -1,21 +1,40 @@
 use std::io;
 
+enum MetaCommandKind{
+    MetaCommandSuccess,
+    MetaCommandUnrecognizedCommand
+}
+
 fn main() {
-    let mut input = String::new();
-
     loop{
-        input.clear();
-        println!("Type a command:");
-        io::stdin().read_line(&mut input).unwrap();
+        let input = get_user_input();
+        let mut a = MetaCommandKind::MetaCommandUnrecognizedCommand;
+        let mut firstChar = ' ';
 
-        let character = input.trim().chars().next().unwrap();       
-        if character == '.'{
-            println!("You made a command!");
-            break;
+        if !input.is_empty(){
+            firstChar = input.chars().next().unwrap();
         }
-        else{
-            println!("Unrecognized Command.");
+
+        if firstChar == '.'{
+            a = MetaCommandKind::MetaCommandSuccess;
         }
-        
+        match a {
+            MetaCommandKind::MetaCommandSuccess =>
+                println!("You made a command!"),
+            MetaCommandKind::MetaCommandUnrecognizedCommand =>
+                println!("That's not a command..."),
+        }
     }
 }
+
+fn get_user_input() -> &str{
+    let mut input = String::new();
+    input.clear();
+    println!("Type a command:");
+    io::stdin().read_line(&mut input).expect("Please enter a command.");
+    
+    input.trim()
+
+}
+
+
