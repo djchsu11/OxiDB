@@ -3,8 +3,19 @@ use std::io;
 fn main() {
     let mut input = String::new();
 
-    println!("Type something >:");
-    io::stdin().read_line(&mut input).unwrap();
+    loop{
+        input.clear();
+        println!("Type a command:");
+        io::stdin().read_line(&mut input).unwrap();
 
-    println!("You typed: {}", input.trim());
+        let character = input.trim().chars().next().unwrap();       
+        if character == '.'{
+            println!("You made a command!");
+            break;
+        }
+        else{
+            println!("Unrecognized Command.");
+        }
+        
+    }
 }
