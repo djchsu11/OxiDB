@@ -43,6 +43,8 @@ fn main() {
 fn execute_command(command: String) -> ExecutionStatusKind{
     if command.to_ascii_lowercase() == constants::EXIT_COMMAND{
         ExecutionStatusKind::ExitSuccess
+    }else if command.to_ascii_lowercase() == constants::MAKE_INSERT{
+        core::Statement::StatementCreate::make(core::Statement::StatementKind::StatementInsert);    
     }else{
         println!("Unrecognized command: {}", command);
         ExecutionStatusKind::ExitFailure
