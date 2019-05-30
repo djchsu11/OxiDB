@@ -1,17 +1,9 @@
 use std::io;
 use core;
 mod constants;
+mod kinds;
 
-enum MetaCommandKind{
-    MetaCommandSuccess,
-    MetaCommandUnrecognizedCommand
-}
-
-#[derive(PartialEq)]
-enum ExecutionStatusKind{
-    ExitFailure,
-    ExitSuccess
-}
+use kinds::*;
 
 fn main() {
     loop{
@@ -44,6 +36,11 @@ fn main() {
 fn execute_command(command: String) -> ExecutionStatusKind{
     if command.to_ascii_lowercase() == constants::EXIT_COMMAND{
         ExecutionStatusKind::ExitSuccess
+
+    }else if command.to_ascii_lowercase() == constants::MAKE_INSERT{
+        core::test();
+        ExecutionStatusKind::ExitSuccess
+
     }else{
         println!("Unrecognized command: {}", command);
         ExecutionStatusKind::ExitFailure
@@ -53,6 +50,7 @@ fn execute_command(command: String) -> ExecutionStatusKind{
 fn get_user_input() -> String{
     let mut input = String::new();
     input.clear();
+
     println!("Type a command:");
     io::stdin().read_line(&mut input).expect("Please enter a command.");
     
