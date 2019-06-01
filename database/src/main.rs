@@ -2,9 +2,6 @@ use std::io;
 
 use core;
 
-mod constants;
-
-
 fn main() {
     loop {
         if execute_statement_or_command(get_user_input().as_str())
@@ -12,15 +9,6 @@ fn main() {
             println!("Exiting...");
             break;
         }
-    }
-}
-
-fn execute_command(command: constants::Command) -> core::kinds::ExecutionStatusKind {
-    match command {
-        constants::Command::Exit =>
-            core::do_command(core::command::CommandType::Exit),
-        constants::Command::Invalid =>
-            core::do_command(core::command::CommandType::Invalid),
     }
 }
 
@@ -48,29 +36,24 @@ fn execute_statement_or_command(input: &str) -> core::kinds::ExecutionStatusKind
         do_command(command)
     } else {
         let statement = get_statement_from_input(input);
-        do_statement(statement)
+        do_statement(statement, input)
     }
 }
 
-fn do_command(command: constants::Command) -> core::kinds::ExecutionStatusKind {
-    if command == constants::Command::Invalid {
-        println!("Unrecognized Command");
-        core::kinds::ExecutionStatusKind::ExecutionFailure
-    } else {
-        execute_command(command)
-    }
+fn do_command(command: core::command::CommandType) -> core::kinds::ExecutionStatusKind {
+    core::do_command(command)
 }
 
-fn do_statement(statement: constants::Statement) -> core::kinds::ExecutionStatusKind {
-    core::kinds::ExecutionStatusKind::ExecutionSuccess
+fn do_statement(statement: core::statement::StatementType, input: &str) -> core::kinds::ExecutionStatusKind {
+    core::do_statement(statement, input)
 }
 
-fn get_command_from_input(input: &str) -> constants::Command {
+fn get_command_from_input(input: &str) -> core::command::CommandType {
     let parsed_string = core::parse_input(input);
-    constants::Command::new(parsed_string.first().unwrap())
+    core::command::CommandType::new(parsed_string.first().unwrap())
 }
 
-fn get_statement_from_input(input: &str) -> constants::Statement {
+fn get_statement_from_input(input: &str) -> core::statement::StatementType {
     let parsed_string = core::parse_input(input);
-    constants::Statement::new(parsed_string.first().unwrap())
+    core::statement::StatementType::new(parsed_string.first().unwrap())
 }

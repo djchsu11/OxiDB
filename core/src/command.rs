@@ -4,6 +4,13 @@ pub enum CommandType {
 }
 
 impl CommandType {
+    pub fn new(val: &str) -> CommandType {
+        match val.to_ascii_lowercase().as_str() {
+            ".exit" => CommandType::Exit,
+            _ => CommandType::Invalid
+        }
+    }
+
     pub(crate) fn do_command(&self) -> bool {
         match *self {
             CommandType::Exit => CommandType::do_exit(),

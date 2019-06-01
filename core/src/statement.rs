@@ -3,35 +3,52 @@ pub enum StatementType {
     Delete,
     Update,
     Select,
+    Invalid
 }
 
 impl StatementType {
-    pub(crate) fn do_statement(&self) -> bool {
-        match *self {
-            StatementType::Insert => StatementType::do_insert(),
-            StatementType::Select => StatementType::do_select(),
-            StatementType::Update => StatementType::do_update(),
-            StatementType::Delete => StatementType::do_delete(),
+    pub fn new(val: &str) -> StatementType {
+        match val.to_ascii_lowercase().as_str() {
+            "insert" => StatementType::Insert,
+            "select" => StatementType::Select,
+            "delete" => StatementType::Delete,
+            "update" => StatementType::Update,
+            _ => StatementType::Invalid
         }
     }
 
-    fn do_insert() -> bool {
-        println!("Doing insert");
+    pub(crate) fn do_statement(&self, query: &str) -> bool {
+        match *self {
+            StatementType::Insert => StatementType::do_insert(query),
+            StatementType::Select => StatementType::do_select(query),
+            StatementType::Update => StatementType::do_update(query),
+            StatementType::Delete => StatementType::do_delete(query),
+            StatementType::Invalid => StatementType::do_reject(),
+        }
+    }
+
+    fn do_insert(query: &str) -> bool {
+        println!("Executing query: {}", query);
         true
     }
 
-    fn do_select() -> bool {
-        println!("Doing select");
+    fn do_select(query: &str) -> bool {
+        println!("Executing query: {}", query);
         true
     }
 
-    fn do_update() -> bool {
-        println!("Doing update");
+    fn do_update(query: &str) -> bool {
+        println!("Executing query: {}", query);
         true
     }
 
-    fn do_delete() -> bool {
-        println!("Doing delete");
+    fn do_delete(query: &str) -> bool {
+        println!("Executing query: {}", query);
         true
+    }
+
+    fn do_reject() -> bool {
+        println!("Invalid SQL");
+        false
     }
 }

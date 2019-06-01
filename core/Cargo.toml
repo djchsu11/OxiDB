@@ -5,3 +5,4 @@ authors = ["djchsu11 <or.no.world@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+model = {path = "../model"}
