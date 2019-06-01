@@ -18,13 +18,9 @@ fn main() {
 fn execute_command(command: constants::Command) -> core::kinds::ExecutionStatusKind {
     match command {
         constants::Command::Exit =>
-            core::kinds::ExecutionStatusKind::ExecutionSuccess,
-        constants::Command::Insert =>
-            core::do_command(core::kinds::CommandKind::CommandInsert),
-        _ => {
-            println!("Unrecognized command.");
-            core::kinds::ExecutionStatusKind::ExecutionFailure
-        }
+            core::do_command(core::command::CommandType::Exit),
+        constants::Command::Invalid =>
+            core::do_command(core::command::CommandType::Invalid),
     }
 }
 
