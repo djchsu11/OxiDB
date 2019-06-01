@@ -10,5 +10,3 @@ edition = "2018"
 
 [dependencies]
 core = {path = "core"}
-
-
