@@ -17,25 +17,25 @@ fn main() {
 
         let first_char = input.chars().next().unwrap();
         let command_type = get_command_type(first_char);
-        let status = do_command(command_type, input);
+        let status = do_command(command_type, input.as_str());
 
-        if status == kinds::ExecutionStatusKind::ExitSuccess {
+        if status == core::ExecutionStatusKind::ExitSuccess {
             println!("Exiting...");
             break;
         }
     }
 }
 
-fn execute_command(command: String) -> kinds::ExecutionStatusKind {
-    if command.to_ascii_lowercase() == constants::EXIT_COMMAND.to_string() {
-        kinds::ExecutionStatusKind::ExitSuccess
-    } else if command.to_ascii_lowercase() == constants::MAKE_INSERT.to_string() {
-        core::test();
-        kinds::ExecutionStatusKind::ExitSuccess
-
-    }else{
-        println!("Unrecognized command: {}", command);
-        kinds::ExecutionStatusKind::ExitFailure
+fn execute_command(command: constants::Command) -> core::ExecutionStatusKind {
+    match command {
+        constants::Command::Exit =>
+            core::ExecutionStatusKind::ExitSuccess,
+        constants::Command::Insert =>
+            core::prepare_statement(core::StatementKind::StatementInsert),
+        _ => {
+            println!("Unrecognized command.");
+            core::ExecutionStatusKind::ExitFailure
+        },
     }
 }
 
@@ -57,14 +57,16 @@ fn get_command_type(command_char: char) -> kinds::MetaCommandKind {
     }
 }
 
-fn do_command(command_type: kinds::MetaCommandKind, input: String) -> kinds::ExecutionStatusKind {
+fn do_command(command_type: kinds::MetaCommandKind, input: &str) -> core::ExecutionStatusKind {
     match command_type {
         kinds::MetaCommandKind::MetaCommandSuccess =>
-            execute_command(input),
+            {
+                execute_command(constants::Command::new(input))
+            },
         kinds::MetaCommandKind::MetaCommandUnrecognizedCommand =>
             {
                 println!("That's not a command...");
-                kinds::ExecutionStatusKind::ExitFailure
+                core::ExecutionStatusKind::ExitFailure
             },
     }
 }
