@@ -16,10 +16,10 @@ pub fn do_command(option: kinds::CommandKind) -> kinds::ExecutionStatusKind{
         _=> result = false
     }
     if result{
-        kinds::ExecutionStatusKind::ExitSuccess
+        kinds::ExecutionStatusKind::ExecutionSuccess
     }
     else{
-        kinds::ExecutionStatusKind::ExitFailure
+        kinds::ExecutionStatusKind::ExecutionFailure
     }
 }
 

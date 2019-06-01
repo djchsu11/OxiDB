@@ -3,23 +3,12 @@ use std::io;
 use core;
 
 mod constants;
-mod kinds;
 
 
 fn main() {
-    loop{
-        let input = get_user_input();
-
-        if input.is_empty() {
-            println!("Please enter a command.");
-            continue;
-        }
-
-        let first_char = input.chars().next().unwrap();
-        let command_type = get_command_type(first_char);
-        let status = do_command(command_type, input.as_str());
-
-        if status == core::kinds::ExecutionStatusKind::ExitSuccess {
+    loop {
+        if execute_statement_or_command(get_user_input().as_str())
+            == core::kinds::ExecutionStatusKind::ExecutionSuccess {
             println!("Exiting...");
             break;
         }
@@ -29,61 +18,63 @@ fn main() {
 fn execute_command(command: constants::Command) -> core::kinds::ExecutionStatusKind {
     match command {
         constants::Command::Exit =>
-            core::kinds::ExecutionStatusKind::ExitSuccess,
+            core::kinds::ExecutionStatusKind::ExecutionSuccess,
         constants::Command::Insert =>
             core::do_command(core::kinds::CommandKind::CommandInsert),
         _ => {
             println!("Unrecognized command.");
-            core::kinds::ExecutionStatusKind::ExitFailure
-        },
+            core::kinds::ExecutionStatusKind::ExecutionFailure
+        }
     }
 }
 
-fn get_user_input() -> String{
+fn get_user_input() -> String {
     let mut input = String::new();
 
     println!("Type a command:");
     io::stdin().read_line(&mut input).expect("Please enter a command.");
-    
+
     String::from(input.trim())
-
 }
 
-fn get_command_type(command_char: char) -> kinds::MetaCommandKind {
+fn get_command_type(command_char: char) -> bool {
     if command_char == '.' {
-        kinds::MetaCommandKind::MetaCommandSuccess
+        true
     } else {
-        kinds::MetaCommandKind::MetaCommandUnrecognizedCommand
+        false
     }
 }
 
-fn do_command(command_type: kinds::MetaCommandKind, input: &str) -> core::kinds::ExecutionStatusKind {
-    match command_type {
-        kinds::MetaCommandKind::MetaCommandSuccess =>
-            {
-                execute_command(constants::Command::new(input))
-            },
-        kinds::MetaCommandKind::MetaCommandUnrecognizedCommand =>
-            {
-                println!("That's not a command...");
-                core::kinds::ExecutionStatusKind::ExitFailure
-            },
+fn execute_statement_or_command(input: &str) -> core::kinds::ExecutionStatusKind {
+    let command_char = input.chars().next().unwrap();
+    if get_command_type(command_char) {
+        let command = get_command_from_input(input);
+        do_command(command)
+    } else {
+        let statement = get_statement_from_input(input);
+        do_statement(statement)
     }
 }
 
-fn get_command_from_input(input: &str) -> core::kinds::CommandSwitchKind {
+fn do_command(command: constants::Command) -> core::kinds::ExecutionStatusKind {
+    if command == constants::Command::Invalid {
+        println!("Unrecognized Command");
+        core::kinds::ExecutionStatusKind::ExecutionFailure
+    } else {
+        execute_command(command)
+    }
+}
+
+fn do_statement(statement: constants::Statement) -> core::kinds::ExecutionStatusKind {
+    core::kinds::ExecutionStatusKind::ExecutionSuccess
+}
+
+fn get_command_from_input(input: &str) -> constants::Command {
     let parsed_string = core::parse_input(input);
-    let mut c;
-    if parsed_string.get(0).unwrap().to_ascii_lowercase().as_str() == "select" {
-        c = core::kinds::CommandSwitchKind {
-            command: core::kinds::CommandKind::None,
-            statement: core::kinds::StatementKind::StatementSelect,
-        };
-    } else {
-        c = core::kinds::CommandSwitchKind {
-            command: core::kinds::CommandKind::None,
-            statement: core::kinds::StatementKind::None,
-        };
-    }
-    c
+    constants::Command::new(parsed_string.first().unwrap())
+}
+
+fn get_statement_from_input(input: &str) -> constants::Statement {
+    let parsed_string = core::parse_input(input);
+    constants::Statement::new(parsed_string.first().unwrap())
 }

@@ -16,8 +16,8 @@ pub enum StatementKind {
 
 #[derive(PartialEq)]
 pub enum ExecutionStatusKind{
-    ExitFailure,
-    ExitSuccess
+    ExecutionFailure,
+    ExecutionSuccess
 }
 
 pub struct CommandSwitchKind {
