@@ -1,36 +1,29 @@
 extern crate core;
-mod statement;
+mod command;
+pub mod kinds;
 
-pub enum StatementKind{
-    StatementInsert,
-    StatementSelect,
-    StatementDelete,
-    StatementUpdate,
-}
-
-#[derive(PartialEq)]
-pub enum ExecutionStatusKind{
-    ExitFailure,
-    ExitSuccess
-}
-
-pub fn prepare_statement(option:StatementKind) -> ExecutionStatusKind{
+pub fn do_command(option: kinds::CommandKind) -> kinds::ExecutionStatusKind{
     let mut result = false;
     match option{
-        StatementKind::StatementInsert =>
-            result = statement::QueryType::Insert.do_query(),
-        StatementKind::StatementSelect =>
-            result = statement::QueryType::Select.do_query(),
-        StatementKind::StatementUpdate =>
-            result = statement::QueryType::Update.do_query(),
-        StatementKind::StatementDelete =>
-            result = statement::QueryType::Delete.do_query(),
+        kinds::CommandKind::CommandInsert =>
+            result = command::CommandType::Insert.do_command(),
+        kinds::CommandKind::CommandSelect =>
+            result = command::CommandType::Select.do_command(),
+        kinds::CommandKind::CommandUpdate =>
+            result = command::CommandType::Update.do_command(),
+        kinds::CommandKind::CommandDelete =>
+            result = command::CommandType::Delete.do_command(),
+        _=> result = false
     }
     if result{
-        ExecutionStatusKind::ExitSuccess
+        kinds::ExecutionStatusKind::ExitSuccess
     }
     else{
-        ExecutionStatusKind::ExitFailure
+        kinds::ExecutionStatusKind::ExitFailure
     }
+}
+
+pub fn parse_input(input: &str)-> Vec<&str>{
+    input.split_whitespace().collect()
 }
 

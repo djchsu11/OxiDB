@@ -1,17 +1,17 @@
-pub(crate) enum QueryType {
+pub(crate) enum CommandType {
     Insert,
     Delete,
     Update,
     Select,
 }
 
-impl QueryType {
-    pub(crate) fn do_query(&self) -> bool {
+impl CommandType {
+    pub(crate) fn do_command(&self) -> bool {
         match *self {
-            QueryType::Insert => QueryType::do_insert(),
-            QueryType::Select => QueryType::do_select(),
-            QueryType::Update => QueryType::do_update(),
-            QueryType::Delete => QueryType::do_delete(),
+            CommandType::Insert => CommandType::do_insert(),
+            CommandType::Select => CommandType::do_select(),
+            CommandType::Update => CommandType::do_update(),
+            CommandType::Delete => CommandType::do_delete(),
         }
     }
 
