@@ -5,6 +5,7 @@ pub enum StatementType {
     Delete,
     Update,
     Select,
+    Create,
     Invalid
 }
 
@@ -15,6 +16,7 @@ impl StatementType {
             "select" => StatementType::Select,
             "delete" => StatementType::Delete,
             "update" => StatementType::Update,
+            "create" => StatementType::Create,
             _ => StatementType::Invalid
         }
     }
@@ -25,6 +27,7 @@ impl StatementType {
             StatementType::Select => StatementType::do_select(query),
             StatementType::Update => StatementType::do_update(query),
             StatementType::Delete => StatementType::do_delete(query),
+            StatementType::Create => StatementType::do_create(query),
             StatementType::Invalid => StatementType::do_reject(),
         }
     }
@@ -47,8 +50,14 @@ impl StatementType {
         true
     }
 
+    fn do_create(query: &str) -> bool {
+        model::handle_create(query)
+    }
+
     fn do_reject() -> bool {
         println!("Invalid SQL");
         false
     }
+
+    
 }
