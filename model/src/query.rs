@@ -1,14 +1,14 @@
 
 pub struct Query{
-    table_name: String,
-    columns: Vec<Column>,
-    operation: StatementType,
-    all_columns_flag: bool    
+    pub table_name: String,
+    pub columns: Vec<Column>,
+    pub operation: StatementType,
+    pub all_columns_flag: bool    
 }
 
 pub struct Column{
-    name: String,
-    column_type: Type,
+    pub name: String,
+    pub column_type: Type,
     
 }
 
