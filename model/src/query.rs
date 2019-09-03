@@ -9,6 +9,7 @@ pub struct Query{
 pub struct Column{
     pub name: String,
     pub column_type: Type,
+    pub column_value: Vec<u8>
     
 }
 
@@ -29,8 +30,8 @@ pub enum StatementType {
 }
 
 impl Column{
-    pub fn new(name: String, column_type: Type) -> Column{
-        Column{name, column_type}
+    pub fn new(name: String, column_type: Type, column_value: Vec<u8>) -> Column{
+        Column{name, column_type, column_value}
     }
 }
 

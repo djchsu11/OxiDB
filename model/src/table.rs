@@ -1,3 +1,4 @@
+
 pub struct Table {
     name: String,
     table: Vec<Row>
@@ -7,11 +8,10 @@ pub struct Row {
     row: Vec<Cell>
 }
 
-pub struct Cell {
+pub struct Cell{
     name: String,
     column_type: Type,
-    int_value: i32,
-    text_value: String
+    value: Vec<u8>,
 }
 
 pub enum Type{
@@ -19,16 +19,16 @@ pub enum Type{
     TEXT
 }
 
-impl Cell{
-    pub fn new(name: String, column_type: Type, int_value: i32, text_value: String) -> Cell{
-        Cell{name, column_type, int_value, text_value}
-    }
-}
-
 impl Table{
-    pub fn new(name: String, row: Vec<Cell>) -> Table{
-        let columns = Row{row};
-        let table = vec![columns];
-        Table{name, table}
+    pub fn create_table(name: String, table: Vec<Row>) -> Option<Table>{
+        for rows in table.iter(){
+            for cell in rows.row.iter(){
+                if cell.name == ""{
+                    return None;
+                }
+            }
+        }
+
+        Some(Table{name, table})
     }
 }

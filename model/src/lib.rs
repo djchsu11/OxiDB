@@ -1,6 +1,9 @@
 use regex::Regex;
+use std::collections::HashMap;
 mod table;
 mod query;
+
+static mut database: Option<HashMap<String, table::Table>> = None;
 
 pub fn handle_select(input: &str) -> bool {
     check_syntax(input, query::StatementType::Select)
@@ -87,9 +90,22 @@ fn parse_create(query: &str) -> query::Query{
             "text" => column_type = query::Type::TEXT,
             _=> column_type = query::Type::UNKNOWN,
         }
-        columns.push(query::Column{name, column_type});
+        columns.push(query::Column{name, column_type, column_value:vec![0]});
     }
 
     query::Query{table_name:table_name.to_string(), columns, operation:query::StatementType::Create, all_columns_flag:false}
+}
+
+fn do_query(action: query::Query) -> bool{
+    let result;
+    if action.operation == query::StatementType::Create{
+        let rows: Vec<table::Cell> = Vec::new();
+        result = table::Table::create_table(action.name, action.columns);
+    }
+
+    match result {
+        Some(x) => true,
+        None => false
+    }
 }
 
