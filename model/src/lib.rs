@@ -17,6 +17,10 @@ pub fn handle_insert(input: &str) -> bool {
 
 pub fn handle_create(input: &str) -> bool {
     check_syntax(input, query::StatementType::Create);
+    match &database{
+        Some(x) => println!("Database already initialized"),
+        None => database = Some(HashMap::new()),
+    }
     let query = create_query(input);
 
     return true
@@ -97,15 +101,34 @@ fn parse_create(query: &str) -> query::Query{
 }
 
 fn do_query(action: query::Query) -> bool{
-    let result;
+    let mut result = None;
+    let mut name = "";
     if action.operation == query::StatementType::Create{
-        let rows: Vec<table::Cell> = Vec::new();
-        result = table::Table::create_table(action.name, action.columns);
+        let mut rows: Vec<table::Cell> = Vec::new();
+        for column in action.columns.iter(){
+            let cell_name = &column.name;
+            rows.push(table::Cell{name:cell_name.to_string(), column_type: get_table_type_from_query_type(&column.column_type), value: Vec::new()});
+        }
+        let table_row = table::Row{row: rows};
+        let mut table : Vec<table::Row> = Vec::new();
+        table.push(table_row);
+        name = &action.table_name;
+        result = table::Table::create_table(name.to_string(), table);
     }
 
     match result {
-        Some(x) => true,
+        Some(x) => {
+            &database.unwrap().insert(name.to_string(), x);
+            true},
         None => false
+    }
+}
+
+fn get_table_type_from_query_type(query_type: &query::Type) -> table::Type{
+    match query_type{
+        query::Type::INT => table::Type::INT,
+        query::Type::TEXT => table::Type::TEXT,
+        _=> table::Type::UNKNOWN
     }
 }
 

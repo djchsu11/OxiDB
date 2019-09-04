@@ -1,22 +1,23 @@
 
 pub struct Table {
-    name: String,
-    table: Vec<Row>
+    pub name: String,
+    pub table: Vec<Row>
 }
 
 pub struct Row {
-    row: Vec<Cell>
+    pub row: Vec<Cell>
 }
 
 pub struct Cell{
-    name: String,
-    column_type: Type,
-    value: Vec<u8>,
+    pub name: String,
+    pub column_type: Type,
+    pub value: Vec<u8>,
 }
 
 pub enum Type{
     INT,
-    TEXT
+    TEXT,
+    UNKNOWN
 }
 
 impl Table{
