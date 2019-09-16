@@ -9,4 +9,5 @@ authors = ["messenger <or.no.world@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-model = {path = "model"}
+regex = "1"
+serde = "1.0.99"

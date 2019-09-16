@@ -1,4 +1,4 @@
-
+#[derive(PartialEq)]
 pub enum StatementType {
     Insert,
     Delete,

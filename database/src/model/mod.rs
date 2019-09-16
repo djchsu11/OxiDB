@@ -1,13 +1,13 @@
 use regex::Regex;
 pub mod table;
-mod query;
+pub mod query;
 
 pub mod command;
-pub mod statement;
 pub mod kinds;
+pub mod statement;
 
 pub fn handle_select(input: &str) -> bool {
-    check_syntax(input, query::StatementType::Select)
+    check_syntax(input, query::QueryType::Select)
 
 }
 
@@ -17,14 +17,14 @@ pub fn handle_insert(input: &str) -> bool {
 }
 
 pub fn handle_create(input: &str) -> bool {
-    check_syntax(input, query::StatementType::Create);
+    check_syntax(input, query::QueryType::Create);
     let query = create_query(input);
 
     return true
 }
 
 //ToDo: Implement other regexes than select. Improve select regex.
-fn check_syntax(input: &str, query_type: query::StatementType) -> bool{
+fn check_syntax(input: &str, query_type: query::QueryType) -> bool{
     let select_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
     let insert_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
     let delete_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
@@ -32,12 +32,12 @@ fn check_syntax(input: &str, query_type: query::StatementType) -> bool{
     let create_regex = Regex::new(r"(?i)CREATE\s+TABLE\s+\w+\s*{\s*[\w, ]+};").unwrap();
 
     match query_type{
-        query::StatementType::Select => select_regex.is_match(input),
-        query::StatementType::Insert => insert_regex.is_match(input),
-        query::StatementType::Delete => delete_regex.is_match(input),
-        query::StatementType::Update => update_regex.is_match(input),
-        query::StatementType::Create => create_regex.is_match(input),
-        query::StatementType::Invalid => false
+        query::QueryType::Select => select_regex.is_match(input),
+        query::QueryType::Insert => insert_regex.is_match(input),
+        query::QueryType::Delete => delete_regex.is_match(input),
+        query::QueryType::Update => update_regex.is_match(input),
+        query::QueryType::Create => create_regex.is_match(input),
+        query::QueryType::Invalid => false
 
     }
 }    
@@ -47,17 +47,17 @@ fn create_query(input: &str) -> query::Query{
     let command = get_command_from_first_input(split_input[0]);
     
     match command{
-        query::StatementType::Create => parse_create(input),
+        query::QueryType::Create => parse_create(input),
         _=> parse_create(input),
     }
     
 }
 
-fn get_command_from_first_input(command: &str) -> query::StatementType{
+fn get_command_from_first_input(command: &str) -> query::QueryType{
     match command.to_ascii_lowercase().as_str(){
-        "select" => query::StatementType::Select,
-        "create" => query::StatementType::Create,
-        _=> query::StatementType::Invalid
+        "select" => query::QueryType::Select,
+        "create" => query::QueryType::Create,
+        _=> query::QueryType::Invalid
 
     }
 }
@@ -94,13 +94,13 @@ fn parse_create(query: &str) -> query::Query{
         columns.push(query::Column{name, column_type, column_value:vec![0]});
     }
 
-    query::Query{table_name:table_name.to_string(), columns, operation:query::StatementType::Create, all_columns_flag:false}
+    query::Query{table_name:table_name.to_string(), columns, operation:query::QueryType::Create, all_columns_flag:false}
 }
 
 fn do_query(action: query::Query) -> bool{
     let mut result = None;
     let mut name = "";
-    if action.operation == query::StatementType::Create{
+    if action.operation == query::QueryType::Create{
         let mut rows: Vec<table::Cell> = Vec::new();
         for column in action.columns.iter(){
             let cell_name = &column.name;

@@ -1,6 +1,6 @@
 use std::io;
 
-use model;
+mod model;
 
 fn main() {
     loop {

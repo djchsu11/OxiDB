@@ -1,8 +1,18 @@
 
+#[derive(PartialEq)]
+pub enum QueryType {
+    Insert,
+    Delete,
+    Update,
+    Select,
+    Create,
+    Invalid
+}
+
 pub struct Query{
     pub table_name: String,
     pub columns: Vec<Column>,
-    pub operation: StatementType,
+    pub operation: QueryType,
     pub all_columns_flag: bool    
 }
 
@@ -19,16 +29,6 @@ pub enum Type{
     UNKNOWN
 }
 
-#[derive(PartialEq)]
-pub enum StatementType {
-    Insert,
-    Delete,
-    Update,
-    Select,
-    Create,
-    Invalid
-}
-
 impl Column{
     pub fn new(name: String, column_type: Type, column_value: Vec<u8>) -> Column{
         Column{name, column_type, column_value}
@@ -36,7 +36,9 @@ impl Column{
 }
 
 impl Query{
-    pub fn new (table_name: String, columns: Vec<Column>, operation: StatementType, all_columns_flag: bool) -> Query{
+    pub fn new (table_name: String, columns: Vec<Column>, operation: QueryType, all_columns_flag: bool) -> Query{
         Query{table_name, columns, operation, all_columns_flag}
     }
 }
+
+
