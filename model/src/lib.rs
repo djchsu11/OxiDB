@@ -1,9 +1,10 @@
 use regex::Regex;
-use std::collections::HashMap;
-mod table;
+pub mod table;
 mod query;
 
-static mut database: Option<HashMap<String, table::Table>> = None;
+pub mod command;
+pub mod statement;
+pub mod kinds;
 
 pub fn handle_select(input: &str) -> bool {
     check_syntax(input, query::StatementType::Select)
@@ -17,10 +18,6 @@ pub fn handle_insert(input: &str) -> bool {
 
 pub fn handle_create(input: &str) -> bool {
     check_syntax(input, query::StatementType::Create);
-    match &database{
-        Some(x) => println!("Database already initialized"),
-        None => database = Some(HashMap::new()),
-    }
     let query = create_query(input);
 
     return true
@@ -117,9 +114,7 @@ fn do_query(action: query::Query) -> bool{
     }
 
     match result {
-        Some(x) => {
-            &database.unwrap().insert(name.to_string(), x);
-            true},
+        Some(x) => true,
         None => false
     }
 }
@@ -130,5 +125,27 @@ fn get_table_type_from_query_type(query_type: &query::Type) -> table::Type{
         query::Type::TEXT => table::Type::TEXT,
         _=> table::Type::UNKNOWN
     }
+}
+
+pub fn do_command(option: command::CommandType) -> kinds::ExecutionStatusKind{
+    if option.do_command(){
+        kinds::ExecutionStatusKind::ExecutionSuccess
+    }
+    else{
+        kinds::ExecutionStatusKind::ExecutionFailure
+    }
+}
+
+pub fn do_statement(kind: statement::StatementType, query: &str) -> kinds::ExecutionStatusKind{
+    if kind.do_statement(query){
+        kinds::ExecutionStatusKind::ExecutionSuccess
+    }
+    else{
+        kinds::ExecutionStatusKind::ExecutionFailure
+    }
+}
+
+pub fn parse_input(input: &str)-> Vec<&str>{
+    input.split_whitespace().collect()
 }
 

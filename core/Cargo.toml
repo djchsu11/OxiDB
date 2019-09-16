@@ -1,8 +1,0 @@
-[package]
-name = "core"
-version = "0.1.0"
-authors = ["djchsu11 <or.no.world@gmail.com>"]
-edition = "2018"
-
-[dependencies]
-model = {path = "../model"}

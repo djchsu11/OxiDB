@@ -1,11 +1,16 @@
+use std::collections::HashMap;
+
+pub struct Database<'a>{
+    registry: HashMap<&'a str, Table>,
+}
 
 pub struct Table {
     pub name: String,
-    pub table: Vec<Row>
+    pub table: Vec<Row>,
 }
 
 pub struct Row {
-    pub row: Vec<Cell>
+    pub row: Vec<Cell>,
 }
 
 pub struct Cell{
@@ -17,7 +22,14 @@ pub struct Cell{
 pub enum Type{
     INT,
     TEXT,
-    UNKNOWN
+    UNKNOWN,
+}
+
+impl<'a> Database<'a>{
+    pub fn get_new_database() -> Database<'a>{
+        Database{registry: HashMap::new()}
+    }
+
 }
 
 impl Table{

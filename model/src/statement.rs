@@ -1,4 +1,3 @@
-use model;
 
 pub enum StatementType {
     Insert,
@@ -33,11 +32,13 @@ impl StatementType {
     }
 
     fn do_insert(query: &str) -> bool {
-        model::handle_insert(query)
+        println!("Executing query: {}", query);
+        true
     }
 
     fn do_select(query: &str) -> bool {
-        model::handle_select(query)
+        println!("Executing query: {}", query);
+        true
     }
 
     fn do_update(query: &str) -> bool {
@@ -51,7 +52,8 @@ impl StatementType {
     }
 
     fn do_create(query: &str) -> bool {
-        model::handle_create(query)
+        println!("Executing query: {}", query);
+        true
     }
 
     fn do_reject() -> bool {

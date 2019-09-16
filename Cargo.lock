@@ -9,17 +9,9 @@ dependencies = [
 ]
 
 [[package]]
-name = "core"
-version = "0.1.0"
-dependencies = [
- "model 0.1.0",
-]
-
-[[package]]
 name = "database"
 version = "0.1.0"
 dependencies = [
- "core 0.1.0",
  "model 0.1.0",
 ]
 
