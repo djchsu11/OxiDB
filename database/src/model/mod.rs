@@ -4,23 +4,99 @@ pub mod query;
 
 pub mod command;
 pub mod kinds;
-pub mod statement;
 
-pub fn handle_select(input: &str) -> bool {
-    check_syntax(input, query::QueryType::Select)
-
+pub fn do_command(option: command::CommandType) -> kinds::ExecutionStatusKind{
+    if option.do_command(){
+        kinds::ExecutionStatusKind::ExecutionSuccess
+    }
+    else{
+        kinds::ExecutionStatusKind::ExecutionFailure
+    }
 }
 
-pub fn handle_insert(input: &str) -> bool {
-    println!("{}", input);
-    true
+pub fn do_statement(statement_type: kinds::StatementKind, query: &str) -> kinds::ExecutionStatusKind{
+    let status;
+
+    match statement_type {
+        kinds::StatementKind::Create => status = handle_create(query),
+        kinds::StatementKind::Select => status = handle_select(query),
+        kinds::StatementKind::Insert => status = handle_insert(query),
+        kinds::StatementKind::Update => status = handle_update(query),
+        kinds::StatementKind::Delete => status = handle_delete(query),
+        kinds::StatementKind::Invalid => status = kinds::ExecutionStatusKind::ExecutionFailure,
+    }
+
+    status
 }
 
-pub fn handle_create(input: &str) -> bool {
-    check_syntax(input, query::QueryType::Create);
-    let query = create_query(input);
+fn handle_select(input: &str) -> kinds::ExecutionStatusKind {
+    let mut status = kinds::ExecutionStatusKind::ExecutionFailure;
+    if check_syntax(input, query::QueryType::Select){
+        let query = create_query(input);
+        if do_query(query){
+            status = kinds::ExecutionStatusKind::ExecutionSuccess
+        }
+        else{
+            status = kinds::ExecutionStatusKind::ExecutionFailure
+        }
+    }
+    status
+}
 
-    return true
+fn handle_update(input: &str) -> kinds::ExecutionStatusKind {
+    let mut status = kinds::ExecutionStatusKind::ExecutionFailure;
+    if check_syntax(input, query::QueryType::Update){
+        let query = create_query(input);
+        if do_query(query){
+            status = kinds::ExecutionStatusKind::ExecutionSuccess
+        }
+        else{
+            status = kinds::ExecutionStatusKind::ExecutionFailure
+        }
+    }
+    status
+}
+
+fn handle_insert(input: &str) -> kinds::ExecutionStatusKind {
+    let mut status = kinds::ExecutionStatusKind::ExecutionFailure;
+    if check_syntax(input, query::QueryType::Insert){
+        let query = create_query(input);
+        if do_query(query){
+            status = kinds::ExecutionStatusKind::ExecutionSuccess
+        }
+        else{
+            status = kinds::ExecutionStatusKind::ExecutionFailure
+        }
+    }
+    status
+}
+
+fn handle_create(input: &str) -> kinds::ExecutionStatusKind {
+    let mut status = kinds::ExecutionStatusKind::ExecutionFailure;
+    if check_syntax(input, query::QueryType::Create){
+        let query = create_query(input);
+        if do_query(query){
+            status = kinds::ExecutionStatusKind::ExecutionSuccess
+        }
+        else{
+            status = kinds::ExecutionStatusKind::ExecutionFailure
+        }
+    }
+    status
+}
+
+fn handle_delete(input: &str) -> kinds::ExecutionStatusKind {
+    let mut status = kinds::ExecutionStatusKind::ExecutionFailure;
+    if check_syntax(input, query::QueryType::Delete){
+        let query = create_query(input);
+        if do_query(query){
+            status = kinds::ExecutionStatusKind::ExecutionSuccess
+        }
+        else{
+            status = kinds::ExecutionStatusKind::ExecutionFailure
+        }
+    }
+    status
 }
 
 //ToDo: Implement other regexes than select. Improve select regex.
@@ -127,23 +203,6 @@ fn get_table_type_from_query_type(query_type: &query::Type) -> table::Type{
     }
 }
 
-pub fn do_command(option: command::CommandType) -> kinds::ExecutionStatusKind{
-    if option.do_command(){
-        kinds::ExecutionStatusKind::ExecutionSuccess
-    }
-    else{
-        kinds::ExecutionStatusKind::ExecutionFailure
-    }
-}
-
-pub fn do_statement(kind: statement::StatementType, query: &str) -> kinds::ExecutionStatusKind{
-    if kind.do_statement(query){
-        kinds::ExecutionStatusKind::ExecutionSuccess
-    }
-    else{
-        kinds::ExecutionStatusKind::ExecutionFailure
-    }
-}
 
 pub fn parse_input(input: &str)-> Vec<&str>{
     input.split_whitespace().collect()
