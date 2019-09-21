@@ -1,7 +1,9 @@
 use std::collections::HashMap;
+use std::ops::DerefMut;
+use std::ops::Deref;
 
-pub struct Database<'a>{
-    registry: HashMap<&'a str, Table>,
+pub struct Database{
+    pub registry: Vec<Table>,
 }
 
 pub struct Table {
@@ -25,18 +27,31 @@ pub enum Type{
     UNKNOWN,
 }
 
-impl<'a> Database<'a>{
-    pub fn get_new_database() -> Database<'a>{
-        Database{registry: HashMap::new()}
+impl Database{
+    pub fn get_new_database() -> Database{
+        Database{registry: Vec::new()}
     }
-
 }
+
+//impl<'a> Deref for Database<'a>{
+//    type Target = HashMap<String, Table>;
+//
+//    fn deref(&self) -> &Self::Target{
+//        &self.registry
+//    }
+//}
+//
+//impl<'a> DerefMut for Database<'a> {
+//    fn deref_mut(&mut self) -> &mut Self::Target {
+//        self.registry
+//    }
+//}
 
 impl Table{
     pub fn create_table(name: String, table: Vec<Row>) -> Option<Table>{
         for rows in table.iter(){
             for cell in rows.row.iter(){
-                if cell.name == ""{
+                if cell.name == "".to_string(){
                     return None;
                 }
             }
