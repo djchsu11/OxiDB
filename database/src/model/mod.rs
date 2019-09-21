@@ -147,9 +147,6 @@ fn parse_create(query: &str) -> query::Query {
     table_name_iter.next();
     let table_name = table_name_iter.next().unwrap();
 
-    println!("Table Name: {}", table_name);
-    println!("Column Group: {}", column_group);
-
     for column_cap in columns_group_regex.captures_iter(column_group) {
         let new_column: Vec<&str> = column_cap[0].split_whitespace().collect();
         let name = new_column[0].to_string();

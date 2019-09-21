@@ -8,22 +8,20 @@ fn main() {
         let input_raw = get_user_input();
         let input = input_raw.as_str();
 
-        if get_command_type(input.chars().next().unwrap()){
-            if input == ".exit"{
+        if get_command_type(input.chars().next().unwrap()) {
+            if input == ".exit" {
                 println!("Exiting..");
                 break;
             }
-
         }
 
         let status = execute_statement_or_command(input, &mut database);
         if status == model::kinds::ExecutionStatusKind::ExecutionSuccess {
             println!("Success!");
-        }
-        else{
+            println!("{:?}", database.registry);
+        } else {
             println!("Failure.");
         }
-
     }
 }
 
@@ -31,12 +29,17 @@ fn get_user_input() -> String {
     let mut input = String::new();
 
     println!("Type a command:");
-    io::stdin().read_line(&mut input).expect("Please enter a command.");
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Please enter a command.");
 
     String::from(input.trim())
 }
 
-fn execute_statement_or_command(input: &str, database: &mut model::table::Database) -> model::kinds::ExecutionStatusKind {
+fn execute_statement_or_command(
+    input: &str,
+    database: &mut model::table::Database,
+) -> model::kinds::ExecutionStatusKind {
     let command_char = input.chars().next().unwrap();
     if get_command_type(command_char) {
         let command = get_command_from_input(input);
@@ -65,16 +68,17 @@ fn get_command_from_input(input: &str) -> model::command::CommandType {
     model::command::CommandType::new(parsed_string.first().unwrap())
 }
 
-fn do_statement(statement: model::kinds::StatementKind, input: &str, database: &mut model::table::Database) -> model::kinds::ExecutionStatusKind {
+fn do_statement(
+    statement: model::kinds::StatementKind,
+    input: &str,
+    database: &mut model::table::Database,
+) -> model::kinds::ExecutionStatusKind {
     model::do_statement(statement, input, database)
 }
 
-fn do_command(command: model::command::CommandType, database: &mut model::table::Database) -> model::kinds::ExecutionStatusKind {
+fn do_command(
+    command: model::command::CommandType,
+    database: &mut model::table::Database,
+) -> model::kinds::ExecutionStatusKind {
     model::do_command(command, database)
 }
-
-
-
-
-
-
