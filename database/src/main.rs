@@ -1,9 +1,10 @@
+use std::collections::HashMap;
 use std::io;
 
 mod model;
 
 fn main() {
-    let mut database = model::table::Database::get_new_database();
+    let mut database: HashMap<String, model::table::Table> = HashMap::new();
     loop {
         let input_raw = get_user_input();
         let input = input_raw.as_str();
@@ -18,7 +19,7 @@ fn main() {
         let status = execute_statement_or_command(input, &mut database);
         if status == model::kinds::ExecutionStatusKind::ExecutionSuccess {
             println!("Success!");
-            println!("{:?}", database.registry);
+            println!("{:?}", database);
         } else {
             println!("Failure.");
         }
@@ -38,7 +39,7 @@ fn get_user_input() -> String {
 
 fn execute_statement_or_command(
     input: &str,
-    database: &mut model::table::Database,
+    database: &mut HashMap<String, model::table::Table>,
 ) -> model::kinds::ExecutionStatusKind {
     let command_char = input.chars().next().unwrap();
     if get_command_type(command_char) {
@@ -71,14 +72,14 @@ fn get_command_from_input(input: &str) -> model::command::CommandType {
 fn do_statement(
     statement: model::kinds::StatementKind,
     input: &str,
-    database: &mut model::table::Database,
+    database: &mut HashMap<String, model::table::Table>,
 ) -> model::kinds::ExecutionStatusKind {
     model::do_statement(statement, input, database)
 }
 
 fn do_command(
     command: model::command::CommandType,
-    database: &mut model::table::Database,
+    database: &mut HashMap<String, model::table::Table>,
 ) -> model::kinds::ExecutionStatusKind {
     model::do_command(command, database)
 }

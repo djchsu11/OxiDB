@@ -1,4 +1,6 @@
+use core::mem;
 use regex::Regex;
+use std::collections::HashMap;
 
 pub mod query;
 pub mod table;
@@ -8,7 +10,7 @@ pub mod kinds;
 
 pub fn do_command(
     option: command::CommandType,
-    database: &mut table::Database,
+    database: &mut HashMap<String, table::Table>,
 ) -> kinds::ExecutionStatusKind {
     kinds::ExecutionStatusKind::ExecutionSuccessContinue
 }
@@ -16,7 +18,7 @@ pub fn do_command(
 pub fn do_statement(
     statement_type: kinds::StatementKind,
     query: &str,
-    database: &mut table::Database,
+    database: &mut HashMap<String, table::Table>,
 ) -> kinds::ExecutionStatusKind {
     let status;
 
@@ -32,7 +34,10 @@ pub fn do_statement(
     status
 }
 
-fn handle_select(input: &str, database: &mut table::Database) -> kinds::ExecutionStatusKind {
+fn handle_select(
+    input: &str,
+    database: &mut HashMap<String, table::Table>,
+) -> kinds::ExecutionStatusKind {
     let mut status = kinds::ExecutionStatusKind::ExecutionFailure;
     if check_syntax(input, query::QueryType::Select) {
         let query = create_query(input);
@@ -45,7 +50,10 @@ fn handle_select(input: &str, database: &mut table::Database) -> kinds::Executio
     status
 }
 
-fn handle_update(input: &str, database: &mut table::Database) -> kinds::ExecutionStatusKind {
+fn handle_update(
+    input: &str,
+    database: &mut HashMap<String, table::Table>,
+) -> kinds::ExecutionStatusKind {
     let mut status = kinds::ExecutionStatusKind::ExecutionFailure;
     if check_syntax(input, query::QueryType::Update) {
         let query = create_query(input);
@@ -58,7 +66,10 @@ fn handle_update(input: &str, database: &mut table::Database) -> kinds::Executio
     status
 }
 
-fn handle_insert(input: &str, database: &mut table::Database) -> kinds::ExecutionStatusKind {
+fn handle_insert(
+    input: &str,
+    database: &mut HashMap<String, table::Table>,
+) -> kinds::ExecutionStatusKind {
     let mut status = kinds::ExecutionStatusKind::ExecutionFailure;
     if check_syntax(input, query::QueryType::Insert) {
         let query = create_query(input);
@@ -71,7 +82,10 @@ fn handle_insert(input: &str, database: &mut table::Database) -> kinds::Executio
     status
 }
 
-fn handle_create(input: &str, database: &mut table::Database) -> kinds::ExecutionStatusKind {
+fn handle_create(
+    input: &str,
+    database: &mut HashMap<String, table::Table>,
+) -> kinds::ExecutionStatusKind {
     let mut status = kinds::ExecutionStatusKind::ExecutionFailure;
     if check_syntax(input, query::QueryType::Create) {
         let query = create_query(input);
@@ -84,7 +98,10 @@ fn handle_create(input: &str, database: &mut table::Database) -> kinds::Executio
     status
 }
 
-fn handle_delete(input: &str, database: &mut table::Database) -> kinds::ExecutionStatusKind {
+fn handle_delete(
+    input: &str,
+    database: &mut HashMap<String, table::Table>,
+) -> kinds::ExecutionStatusKind {
     let mut status = kinds::ExecutionStatusKind::ExecutionFailure;
     if check_syntax(input, query::QueryType::Delete) {
         let query = create_query(input);
@@ -100,7 +117,7 @@ fn handle_delete(input: &str, database: &mut table::Database) -> kinds::Executio
 //ToDo: Implement other regexes than select. Improve select regex.
 fn check_syntax(input: &str, query_type: query::QueryType) -> bool {
     let select_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
-    let insert_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
+    let insert_regex = Regex::new(r"(?i)INSERT INTO \w+ VALUES\([\w\d\s,]+\);").unwrap();
     let delete_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
     let update_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
     let create_regex = Regex::new(r"(?i)CREATE\s+TABLE\s+\w+\s*\{\s*[\w, ]+};").unwrap();
@@ -121,6 +138,7 @@ fn create_query(input: &str) -> query::Query {
 
     match command {
         query::QueryType::Create => parse_create(input),
+        query::QueryType::Insert => parse_insert(input),
         _ => parse_create(input),
     }
 }
@@ -173,8 +191,12 @@ fn parse_create(query: &str) -> query::Query {
     }
 }
 
-fn do_query(action: query::Query, mut database: &mut table::Database) -> bool {
-    let mut result = None;
+fn parse_insert(query: &str) -> query::Query {
+    let table_name_regex = Regex::new(r"(?i)INSERT INTO \w+").unwrap();
+    unimplemented!();
+}
+
+fn do_query(action: query::Query, mut database: &mut HashMap<String, table::Table>) -> bool {
     let mut name = "";
     if action.operation == query::QueryType::Create {
         let mut rows: Vec<table::Cell> = Vec::new();
@@ -190,16 +212,9 @@ fn do_query(action: query::Query, mut database: &mut table::Database) -> bool {
         let mut table: Vec<table::Row> = Vec::new();
         table.push(table_row);
         name = &action.table_name;
-        result = table::Table::create_table(name.to_string(), table);
+        database.insert(String::from(name), table::Table { table });
     }
-
-    match result {
-        Some(x) => {
-            database.registry.push(x);
-            true
-        }
-        None => false,
-    }
+    true
 }
 
 fn get_table_type_from_query_type(query_type: &query::Type) -> table::Type {
