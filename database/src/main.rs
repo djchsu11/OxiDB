@@ -47,6 +47,7 @@ fn execute_statement_or_command(
         do_command(command, database)
     } else {
         let statement = get_statement_from_input(input);
+        println!("{:?}", statement);
         do_statement(statement, input, database)
     }
 }

@@ -6,7 +6,7 @@ pub enum ExecutionStatusKind{
     ExecutionFailureContinue,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum StatementKind {
     Insert,
     Delete,

@@ -1,6 +1,7 @@
 use core::mem;
 use regex::Regex;
 use std::collections::HashMap;
+use std::str::FromStr;
 
 pub mod query;
 pub mod table;
@@ -72,7 +73,7 @@ fn handle_insert(
 ) -> kinds::ExecutionStatusKind {
     let mut status = kinds::ExecutionStatusKind::ExecutionFailure;
     if check_syntax(input, query::QueryType::Insert) {
-        let query = create_query(input);
+        let query = parse_insert(input);
         if do_query(query, database) {
             status = kinds::ExecutionStatusKind::ExecutionSuccess
         } else {
@@ -117,7 +118,7 @@ fn handle_delete(
 //ToDo: Implement other regexes than select. Improve select regex.
 fn check_syntax(input: &str, query_type: query::QueryType) -> bool {
     let select_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
-    let insert_regex = Regex::new(r"(?i)INSERT INTO \w+ VALUES\([\w\d\s,]+\);").unwrap();
+    let insert_regex = Regex::new(r"(?i)INSERT INTO \w+ VALUES\s*\([\w\d\s,]+\);").unwrap();
     let delete_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
     let update_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
     let create_regex = Regex::new(r"(?i)CREATE\s+TABLE\s+\w+\s*\{\s*[\w, ]+};").unwrap();
@@ -192,12 +193,34 @@ fn parse_create(query: &str) -> query::Query {
 }
 
 fn parse_insert(query: &str) -> query::Query {
-    let table_name_regex = Regex::new(r"(?i)INSERT INTO \w+").unwrap();
-    unimplemented!();
+    let query_groups: Vec<&str> = query.split("(").collect();
+    let table_group: Vec<&str> = query_groups[0].split_ascii_whitespace().collect();
+    let value_regex = Regex::new(r"[\w\d]+,*").unwrap();
+
+    let mut parsed_query = query::Query::new();
+    //Get Table Name
+    parsed_query.table_name = String::from(table_group[2]);
+    //Get Query Type
+    parsed_query.operation = query::QueryType::Insert;
+    //Get Values
+    let mut columns :Vec<query::Column> = Vec::new();
+    for value_cap in value_regex.captures_iter(query_groups[1]){
+        let w:&str = &value_cap[0];
+        let mut  val = Vec::from(w.as_bytes());
+        if val.last().unwrap() == &u8::from_str("44").unwrap(){
+            val.remove(val.len() - 1);
+        }
+        let column = query::Column { name: String::from(""), column_type: query::Type::UNKNOWN, column_value: val };
+        columns.push(column);
+    }
+
+    parsed_query.columns = columns;
+    parsed_query
 }
 
 fn do_query(action: query::Query, mut database: &mut HashMap<String, table::Table>) -> bool {
     let mut name = "";
+    let mut result = true;
     if action.operation == query::QueryType::Create {
         let mut rows: Vec<table::Cell> = Vec::new();
         for column in action.columns.iter() {
@@ -214,7 +237,41 @@ fn do_query(action: query::Query, mut database: &mut HashMap<String, table::Tabl
         name = &action.table_name;
         database.insert(String::from(name), table::Table { table });
     }
-    true
+    if action.operation == query::QueryType::Insert {
+        let mut table = database.get_mut(&action.table_name);
+        match table{
+            None => {
+                println!("Table not found");
+                result = false;
+            }
+            Some(x) => {
+                let sample_row = &x.table[0];
+                if sample_row.row.len() != action.columns.len(){
+                    println!("Error: Column Mismatch");
+                    result = false;
+                }
+                else{
+                    let mut columns :Vec<table::Cell> = Vec::new();
+                    let mut i = 0;
+                    for column in &sample_row.row{
+                        let column_type;
+                        match column.column_type{
+                            table::Type::INT => column_type = table::Type::INT,
+                            table::Type::TEXT => column_type = table::Type::TEXT,
+                            _=> column_type = table::Type::UNKNOWN,
+                        };
+                        let cell = table::Cell{name: String::from(&column.name), column_type, value: action.columns[i].column_value.clone()};
+                        columns.push(cell);
+                        i += 1;
+                    }
+                    x.table.push(table::Row{row: columns});
+                    result = true;
+
+                }
+            }
+        }
+    }
+    result
 }
 
 fn get_table_type_from_query_type(query_type: &query::Type) -> table::Type {
