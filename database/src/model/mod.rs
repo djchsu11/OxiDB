@@ -2,6 +2,7 @@ use core::mem;
 use regex::Regex;
 use std::collections::HashMap;
 use std::str::FromStr;
+use crate::model::query::Type;
 
 pub mod query;
 pub mod table;
@@ -41,10 +42,12 @@ fn handle_select(
 ) -> kinds::ExecutionStatusKind {
     let mut status = kinds::ExecutionStatusKind::ExecutionFailure;
     if check_syntax(input, query::QueryType::Select) {
+        println!("Status checked");
         let query = create_query(input);
         if do_query(query, database) {
             status = kinds::ExecutionStatusKind::ExecutionSuccess
         } else {
+            println!("Status checked");
             status = kinds::ExecutionStatusKind::ExecutionFailure
         }
     }
@@ -117,7 +120,7 @@ fn handle_delete(
 
 //ToDo: Implement other regexes than select. Improve select regex.
 fn check_syntax(input: &str, query_type: query::QueryType) -> bool {
-    let select_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
+    let select_regex = Regex::new(r"(?i)SELECT [\w\*, ]+ WHERE [\w ]+=[\w ]+;").unwrap();
     let insert_regex = Regex::new(r"(?i)INSERT INTO \w+ VALUES\s*\([\w\d\s,]+\);").unwrap();
     let delete_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
     let update_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
@@ -140,6 +143,7 @@ fn create_query(input: &str) -> query::Query {
     match command {
         query::QueryType::Create => parse_create(input),
         query::QueryType::Insert => parse_insert(input),
+        query::QueryType::Select => parse_select(input),
         _ => parse_create(input),
     }
 }
@@ -218,7 +222,36 @@ fn parse_insert(query: &str) -> query::Query {
     parsed_query
 }
 
-fn do_query(action: query::Query, mut database: &mut HashMap<String, table::Table>) -> bool {
+/*
+* Support only * selects for now
+* TODO: Add support for column selects
+*/
+fn parse_select(query: &str) -> query::Query {
+    let query_groups: Vec<&str> = query.split("where").collect();
+    let mut select_query = query::Query::new();
+    let table_group = query_groups.get(0).unwrap();
+    if table_group.contains("*"){
+        select_query.all_columns_flag = true;
+    }
+    let table_name_vec: Vec<&str> = table_group.split("from").collect();
+    let table_name = table_name_vec.get(1).unwrap();
+    let column_cap = Regex::new(r"[\w ]+=[\w ]+").unwrap();
+
+    select_query.table_name = table_name.trim().to_string();
+    let mut columns: Vec<query::Column> = Vec::new();
+    for column_cap in column_cap.captures_iter(query_groups[1]){
+        let parameter:&str = &column_cap[0];
+        let column_value: Vec<&str> = parameter.split("=").collect();
+        println!("{:?}", column_value);
+        let byte_value = String::from(column_value[1].trim()).into_bytes();
+        let column = query::Column { name: String::from(column_value[0]), column_type: Type::UNKNOWN, column_value: byte_value };
+        select_query.columns.push(column);
+    }
+    println!("{:?}", select_query);
+    select_query
+}
+
+fn do_query(mut action: query::Query, mut database: &mut HashMap<String, table::Table>) -> bool {
     let mut name = "";
     let mut result = true;
     if action.operation == query::QueryType::Create {
@@ -256,8 +289,8 @@ fn do_query(action: query::Query, mut database: &mut HashMap<String, table::Tabl
                     for column in &sample_row.row{
                         let column_type;
                         match column.column_type{
-                            table::Type::INT => column_type = table::Type::INT,
                             table::Type::TEXT => column_type = table::Type::TEXT,
+                            table::Type::INT => column_type = table::Type::INT,
                             _=> column_type = table::Type::UNKNOWN,
                         };
                         let cell = table::Cell{name: String::from(&column.name), column_type, value: action.columns[i].column_value.clone()};
@@ -268,6 +301,64 @@ fn do_query(action: query::Query, mut database: &mut HashMap<String, table::Tabl
                     result = true;
 
                 }
+            }
+        }
+    }
+    if action.operation == query::QueryType::Select {
+        let mut table = database.get_mut(&action.table_name);
+
+        match table{
+            None => {
+                println!("Table not found");
+                result = false;
+            }
+            Some(x) => {
+                let sample_row = &mut x.table[0];
+                let mut valid = true;
+                sample_row.row.sort();
+                action.columns.sort();
+                for column in &sample_row.row{
+                    for query_column in &action.columns{
+                        if query_column.name != column.name{ 
+                            println!("Invalid column: {:?}", query_column.name);
+                            valid = false;
+                            break;
+                        }
+                    }
+                }
+
+                if valid{
+                    // create struct to hold results
+                    let mut results: Vec<&table::Row> = Vec::new();
+                    // build usable set of criteria
+                    let mut query_params = HashMap::new();
+
+                    for query_column in &action.columns{
+                        query_params.insert(&query_column.name, &query_column.column_value);
+                    }
+
+                    // iterate through table
+                    for row in &x.table{
+                        let mut valid_row = true;
+                        for cell in &row.row{
+                            match query_params.get(&cell.name){
+                                None => valid_row = false,
+                                _ => valid_row = true,
+                            }
+                            if !valid_row{
+                                break;
+                            }
+                        }
+                        if valid_row{
+                            results.push(&row);
+                        }
+                    }
+                    result = true;
+                    //print results
+                    println!("{:?}", results);
+
+                }
+
             }
         }
     }
