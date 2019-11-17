@@ -118,14 +118,13 @@ fn handle_delete(
     status
 }
 
-//ToDo: Implement other regexes than select. Improve select regex.
+//TODO: Update, Delete
 fn check_syntax(input: &str, query_type: query::QueryType) -> bool {
-    let select_regex = Regex::new(r"(?i)SELECT [\w\*, ]+ WHERE [\w ]+=[\w ]+;").unwrap();
+    let select_regex = Regex::new(r"(?i)SELECT [\w\*, ]+ WHERE [\w]+[\s]*=[\s]*[\w]+;").unwrap();
     let insert_regex = Regex::new(r"(?i)INSERT INTO \w+ VALUES\s*\([\w\d\s,]+\);").unwrap();
-    let delete_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
-    let update_regex = Regex::new(r"(?i)SELECT [\w, ]+ WHERE \w = \w;").unwrap();
+    let delete_regex = Regex::new(r"(?i)DELETE FROM [\w]+ WHERE [\w]+[\s]*=[\s]*[\w\d]+;").unwrap();
+    let update_regex = Regex::new(r"(?i)UPDATE [\w]+ SET [\w]+[\s]*=[\s]*[\w]+ WHERE [\w]+[\s]*=[\s]*[\w]+;").unwrap();
     let create_regex = Regex::new(r"(?i)CREATE\s+TABLE\s+\w+\s*\{\s*[\w, ]+};").unwrap();
-
     match query_type {
         query::QueryType::Select => select_regex.is_match(input),
         query::QueryType::Insert => insert_regex.is_match(input),
@@ -144,6 +143,10 @@ fn create_query(input: &str) -> query::Query {
         query::QueryType::Create => parse_create(input),
         query::QueryType::Insert => parse_insert(input),
         query::QueryType::Select => parse_select(input),
+        query::QueryType::Delete => {
+            println!(")(&)(&)(");
+            parse_delete(input)},
+        query::QueryType::Update => parse_update(input),
         _ => parse_create(input),
     }
 }
@@ -152,6 +155,9 @@ fn get_command_from_first_input(command: &str) -> query::QueryType {
     match command.to_ascii_lowercase().as_str() {
         "select" => query::QueryType::Select,
         "create" => query::QueryType::Create,
+        "delete" => query::QueryType::Delete,
+        "update" => query::QueryType::Update,
+        "insert" => query::QueryType::Insert,
         _ => query::QueryType::Invalid,
     }
 }
@@ -235,6 +241,49 @@ fn parse_select(query: &str) -> query::Query {
     }
     let table_name_vec: Vec<&str> = table_group.split("from").collect();
     let table_name = table_name_vec.get(1).unwrap();
+    let column_cap = Regex::new(r"[\w ]+=[\w ]+").unwrap();
+
+    select_query.table_name = table_name.trim().to_string();
+    let mut columns: Vec<query::Column> = Vec::new();
+    for column_cap in column_cap.captures_iter(query_groups[1]){
+        let parameter:&str = &column_cap[0];
+        let column_value: Vec<&str> = parameter.split("=").collect();
+        println!("{:?}", column_value);
+        let byte_value = String::from(column_value[1].trim()).into_bytes();
+        let column = query::Column { name: String::from(column_value[0]), column_type: Type::UNKNOWN, column_value: byte_value };
+        select_query.columns.push(column);
+    }
+    println!("{:?}", select_query);
+    select_query
+}
+
+fn parse_delete(query: &str) -> query::Query {
+    let query_groups: Vec<&str> = query.split("where").collect();
+    let mut delete_query = query::Query::new();
+    let table_group = query_groups.get(0).unwrap();
+    let table_name_vec: Vec<&str> = table_group.split("from").collect();
+    let table_name = table_name_vec.get(1).unwrap();
+    let column_cap = Regex::new(r"[\w ]+=[\w ]+").unwrap();
+
+    delete_query.table_name = table_name.trim().to_string();
+    let mut columns: Vec<query::Column> = Vec::new();
+    for column_cap in column_cap.captures_iter(query_groups[1]){
+        let parameter:&str = &column_cap[0];
+        let column_value: Vec<&str> = parameter.split("=").collect();
+        let byte_value = String::from(column_value[1].trim()).into_bytes();
+        let column = query::Column { name: String::from(column_value[0]), column_type: Type::UNKNOWN, column_value: byte_value };
+        delete_query.columns.push(column);
+    }
+    println!("{:?}", delete_query);
+    delete_query 
+}
+
+//TODO: Copied from select, need to rework
+//UPDATE whatever SET 1=1 where 2=2;
+fn parse_update(query: &str) -> query::Query {
+    let query_groups: Vec<&str> = query.split("set").collect();
+    let mut select_query = query::Query::new();
+    let table_name = query_groups.get(1).unwrap();
     let column_cap = Regex::new(r"[\w ]+=[\w ]+").unwrap();
 
     select_query.table_name = table_name.trim().to_string();
